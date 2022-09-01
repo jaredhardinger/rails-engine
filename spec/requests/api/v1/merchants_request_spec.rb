@@ -24,9 +24,9 @@ RSpec.describe 'The merchants API' do
   end
 
   it 'returns one merchant' do 
-    merchant1 = create_list(:merchant, 1).first
+    merchant = create(:merchant)
 
-    get "/api/v1/merchants/#{merchant1.id}"
+    get "/api/v1/merchants/#{merchant.id}"
 
     expect(response).to be_successful
 
