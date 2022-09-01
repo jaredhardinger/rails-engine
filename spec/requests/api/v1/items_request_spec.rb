@@ -79,11 +79,28 @@ RSpec.describe 'The items API' do
     merchants = create_list(:merchant, 2)
     merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
     item = create(:item, merchant_id: merchants[1].id)
-    delete "/api/v1/items/#{item.id}"
-    # expect(Item.count).to eq(6)
-    # expect{ delete "/api/v1/items/#{item.id}" }.to change(Item, :count).by(-1)
+    
+    expect(Item.count).to eq(6)
+    expect{ delete "/api/v1/items/#{item.id}" }.to change(Item, :count).by(-1)
+    expect(response).to be_successful
+    expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
+  end
 
-    # expect(response).to be_succesful
-    # expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
+  it 'can update an item' do
+    merchant = create(:merchant)
+    item = create(:item, merchant_id: merchant.id)
+    item_params = {
+        name: "Stapler",
+        description: "it staples things",
+        unit_price: 13.98,
+        merchant_id: merchant.id
+    }
+    headers = {"CONTENT_TYPE" => "application/json"}
+    patch "/api/v1/items/#{item.id}", headers: headers, params: JSON.generate(item: item_params)
+    updated_item = Item.find_by(id: item.id)
+
+    expect(response).to be_successful
+    expect(updated_item.name).to_not eq(item.name)
+    expect(updated_item.name).to eq("Stapler")
   end
 end
