@@ -103,4 +103,24 @@ RSpec.describe 'The items API' do
     expect(updated_item.name).to_not eq(item.name)
     expect(updated_item.name).to eq("Stapler")
   end
+
+  it "can get an item's merchant" do
+    merchants = create_list(:merchant, 5)
+    merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
+    merchant2_items = create_list(:item, 4, merchant_id: merchants[1].id)
+    item1 = merchant1_items[3]
+    item2 = merchant2_items[2]
+
+    get "/api/v1/items/#{item1.id}/merchant"
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    merchant = response_body[:data]
+
+    expect(merchant).to have_key(:id)
+    expect(merchant[:id]).to be_a(String)
+    expect(merchant[:id].to_i).to be_an(Integer)
+
+    expect(merchant).to have_key(:attributes)
+    expect(merchant[:attributes][:name]).to be_a(String)
+  end
 end
