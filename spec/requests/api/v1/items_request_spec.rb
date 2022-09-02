@@ -3,10 +3,8 @@ require 'rails_helper'
 RSpec.describe 'The items API' do
   it 'returns a list of all items' do
     merchants = create_list(:merchant, 2)
-    merchant1 = merchants[0]
-    merchant2 = merchants[1]
-    merchant1_items = create_list(:item, 5, merchant_id: merchant1.id)
-    merchant2_items = create_list(:item, 4, merchant_id: merchant2.id)
+    merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
+    merchant2_items = create_list(:item, 4, merchant_id: merchant[1].id)
 
     get '/api/v1/items'
 
@@ -122,5 +120,16 @@ RSpec.describe 'The items API' do
 
     expect(merchant).to have_key(:attributes)
     expect(merchant[:attributes][:name]).to be_a(String)
+  end
+
+  it 'can find one item by name fragment' do 
+    item1 = Item.create!(name: 'nunchucks')
+    item2 = Item.create!(name: 'apple sauce')
+    item2 = Item.create!(name: 'woodchuck repellent')
+
+    get "/api/v1/items/find"
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    item = response_body[:data]
   end
 end

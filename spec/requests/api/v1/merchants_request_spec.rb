@@ -65,4 +65,32 @@ RSpec.describe 'The merchants API' do
     expect(item_ids).to match(merchant1_item_ids)
     expect(item_ids).to_not match(merchant2_item_ids)
   end
+
+  it 'can find all merchants by name fragment' do
+    merchant1 = Merchant.create!(name: "Thaddeus")
+    merchant2 = Merchant.create!(name: "Stheve")
+    merchant3 = Merchant.create!(name: "Steven")
+    merchant4 = Merchant.create!(name: "John")
+
+    get "/api/v1/merchants/find_all?name=THAD"
+
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    merchants = response_body[:data]
+    expect(merchants.count).to eq(1)
+
+    get "/api/v1/merchants/find_all?name=Th"
+
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    merchants = response_body[:data]
+    expect(merchants.count).to eq(2)
+
+    get "/api/v1/merchants/find_all?name=dklsajfklj"
+
+    expect(response).to_not be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    merchants = response_body[:data]
+    expect(merchants.count).to eq(0)
+  end
 end
