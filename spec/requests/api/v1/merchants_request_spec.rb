@@ -73,25 +73,26 @@ RSpec.describe 'The merchants API' do
     merchant4 = Merchant.create!(name: "John")
 
     get "/api/v1/merchants/find_all?name=THAD"
-
     expect(response).to be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     merchants = response_body[:data]
     expect(merchants.count).to eq(1)
 
     get "/api/v1/merchants/find_all?name=Th"
-
     expect(response).to be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     merchants = response_body[:data]
     expect(merchants.count).to eq(2)
 
     get "/api/v1/merchants/find_all?name=dklsajfklj"
-
     expect(response).to_not be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     merchants = response_body[:data]
     expect(merchants.count).to eq(0)
+
+    get "/api/v1/merchants/find_all?name="
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
   end
 
   it 'can find one merchant by name fragment' do 
@@ -101,25 +102,25 @@ RSpec.describe 'The merchants API' do
     merchant4 = Merchant.create!(name: "John")
 
     get "/api/v1/merchants/find?name=THAD"
-
     expect(response).to be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     merchant = response_body[:data]
     expect(merchant[:id].to_i).to eq(merchant1.id)
 
     get "/api/v1/merchants/find?name=Th"
-    
     expect(response).to be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     merchant = response_body[:data]
     expect(merchant[:id].to_i).to eq(merchant2.id)
 
-    
     get "/api/v1/merchants/find?name=dklsajfklj"
-
     expect(response).to_not be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     merchant = response_body[:data]
-    expect(merchant.nil?).to be(true)
+    expect(merchant.empty?).to be(true)
+
+    get "/api/v1/merchants/find?name="
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
   end
 end

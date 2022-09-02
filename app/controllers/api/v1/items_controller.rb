@@ -51,7 +51,7 @@ class Api::V1::ItemsController < ApplicationController
             render status: 400
         else
             items = Item.find_by_name(params[:name])
-            if items.nil?
+            if items.empty?
                 render json: ItemSerializer.no_matches, status: 404
             else
                 render json: ItemSerializer.new(items)
