@@ -19,4 +19,17 @@ class Api::V1::MerchantsController < ApplicationController
             end
         end
     end
+
+    def find
+        if params[:name].empty?
+            render status: 400
+        else
+            merchant = Merchant.find_by_name(params[:name]).first
+            if merchant.nil?
+                render json: MerchantSerializer.no_matches, status: 404
+            else
+                render json: MerchantSerializer.new(merchant)
+            end
+        end
+    end
 end

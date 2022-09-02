@@ -146,6 +146,34 @@ RSpec.describe 'The items API' do
     expect(response).to_not be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     item = response_body[:data]
-    expect(item.nil?).to be(true)
+    expect(item.empty?).to be(true)
+  end
+   
+  it 'can find all items by name fragment' do 
+    merchant = create(:merchant)
+    item1 = create(:item, name: 'woodchuck repellent', merchant_id: merchant.id)
+    item2 = create(:item, name: 'apple sauce', merchant_id: merchant.id)
+    item3 = create(:item, name: 'nunchucks', merchant_id: merchant.id)
+
+    get "/api/v1/items/find_all?name=uc"
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    items = response_body[:data]
+    expect(items).to be_an(Array)
+    expect(items.count).to eq(3)
+
+    get "/api/v1/items/find_all?name=wood"
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    item = response_body[:data]
+    expect(item[0][:id].to_i).to eq(item1.id)
+    expect(item.count).to eq(1)
+    expect(item[0][:attributes][:name]).to eq(item1.name)
+
+    get "/api/v1/items/find?name=shibby"
+    expect(response).to_not be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    item = response_body[:data]
+    expect(item.empty?).to be(true)
   end
 end
