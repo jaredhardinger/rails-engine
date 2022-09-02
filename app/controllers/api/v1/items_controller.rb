@@ -37,11 +37,24 @@ class Api::V1::ItemsController < ApplicationController
         if params[:name].empty?
             render status: 400
         else
-            item = Item.find_by_name(params[:name])
+            item = Item.find_by_name(params[:name]).first
             if item.nil?
-                render json: ItemSerializer.new(item), status: 404
+                render json: ItemSerializer.no_matches, status: 404
             else
                 render json: ItemSerializer.new(item)
+            end
+        end
+    end
+
+    def find_all
+        if params[:name].empty?
+            render status: 400
+        else
+            items = Item.find_by_name(params[:name])
+            if items.nil?
+                render json: ItemSerializer.no_matches, status: 404
+            else
+                render json: ItemSerializer.new(items)
             end
         end
     end
