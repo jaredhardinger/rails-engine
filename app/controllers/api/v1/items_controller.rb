@@ -33,6 +33,19 @@ class Api::V1::ItemsController < ApplicationController
         end
     end
 
+    def find
+        if params[:name].empty?
+            render status: 400
+        else
+            item = Item.find_by_name(params[:name])
+            if item.nil?
+                render json: ItemSerializer.new(item), status: 404
+            else
+                render json: ItemSerializer.new(item)
+            end
+        end
+    end
+
 private
     def item_params
         params.require(:item).permit(:name, :description, :unit_price, :merchant_id)
