@@ -4,7 +4,7 @@ RSpec.describe 'The items API' do
   it 'returns a list of all items' do
     merchants = create_list(:merchant, 2)
     merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
-    merchant2_items = create_list(:item, 4, merchant_id: merchant[1].id)
+    merchant2_items = create_list(:item, 4, merchant_id: merchants[1].id)
 
     get '/api/v1/items'
 
@@ -73,6 +73,18 @@ RSpec.describe 'The items API' do
     expect(created_item.merchant_id).to eq(item_params[:merchant_id])
   end
 
+    it 'can fail to create an item' do
+    merchant = create(:merchant)
+    item_params = {
+        description: "it staples things",
+        unit_price: 13.98,
+        merchant_id: 567777
+    }
+    headers = {"CONTENT_TYPE" => "application/json"}
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    expect(response.status).to eq(404)
+  end
+
   it 'can delete an item' do
     merchants = create_list(:merchant, 2)
     merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
@@ -82,6 +94,16 @@ RSpec.describe 'The items API' do
     expect{ delete "/api/v1/items/#{item.id}" }.to change(Item, :count).by(-1)
     expect(response).to be_successful
     expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
+  end
+
+  it 'can fail to delete an item' do
+    merchants = create_list(:merchant, 2)
+    merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
+    item = create(:item, merchant_id: merchants[1].id)
+    
+    expect(Item.count).to eq(6)
+    delete "/api/v1/items/438963894"
+    expect(response.status).to eq(404)
   end
 
   it 'can update an item' do
@@ -102,6 +124,21 @@ RSpec.describe 'The items API' do
     expect(updated_item.name).to eq("Stapler")
   end
 
+  it 'can fail to update an item' do
+    merchant = create(:merchant)
+    item = create(:item, merchant_id: merchant.id)
+    item_params = {
+        description: "it staples things",
+        unit_price: 13.98,
+        merchant_id: 567777
+    }
+    headers = {"CONTENT_TYPE" => "application/json"}
+    patch "/api/v1/items/#{item.id}", headers: headers, params: JSON.generate(item: item_params)
+    updated_item = Item.find_by(id: item.id)
+
+    expect(response.status).to eq(404)
+  end
+
   it "can get an item's merchant" do
     merchants = create_list(:merchant, 5)
     merchant1_items = create_list(:item, 5, merchant_id: merchants[0].id)
@@ -120,6 +157,12 @@ RSpec.describe 'The items API' do
 
     expect(merchant).to have_key(:attributes)
     expect(merchant[:attributes][:name]).to be_a(String)
+  end
+
+  it 'can return a 404 if items merchant is not found' do
+    get "/api/v1/items/539503/merchant"
+    expect(response).to_not be_successful
+    expect(response.status).to eq(404)
   end
 
   it 'can find one item by name fragment' do 
@@ -146,7 +189,12 @@ RSpec.describe 'The items API' do
     expect(response).to_not be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     item = response_body[:data]
+    expect(response.status).to eq(404)
     expect(item.empty?).to be(true)
+
+    get "/api/v1/items/find?name="
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
   end
    
   it 'can find all items by name fragment' do 
@@ -170,10 +218,15 @@ RSpec.describe 'The items API' do
     expect(item.count).to eq(1)
     expect(item[0][:attributes][:name]).to eq(item1.name)
 
-    get "/api/v1/items/find?name=shibby"
+    get "/api/v1/items/find_all?name=shibby"
     expect(response).to_not be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     item = response_body[:data]
+    expect(response.status).to eq(404)
     expect(item.empty?).to be(true)
+  
+    get "/api/v1/items/find_all?name="
+    expect(response).to_not be_successful
+    expect(response.status).to eq(400)
   end
 end
