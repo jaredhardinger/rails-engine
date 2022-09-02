@@ -123,13 +123,29 @@ RSpec.describe 'The items API' do
   end
 
   it 'can find one item by name fragment' do 
-    item1 = Item.create!(name: 'nunchucks')
-    item2 = Item.create!(name: 'apple sauce')
-    item2 = Item.create!(name: 'woodchuck repellent')
+    merchant = create(:merchant)
+    item1 = create(:item, name: 'woodchuck repellent', merchant_id: merchant.id)
+    item2 = create(:item, name: 'apple sauce', merchant_id: merchant.id)
+    item3 = create(:item, name: 'nunchucks', merchant_id: merchant.id)
 
-    get "/api/v1/items/find"
+    get "/api/v1/items/find?name=uc"
     expect(response).to be_successful
     response_body = JSON.parse(response.body, symbolize_names: true)
     item = response_body[:data]
+    expect(item[:id].to_i).to eq(item2.id)
+    expect(item[:attributes][:name]).to eq(item2.name)
+
+    get "/api/v1/items/find?name=wood"
+    expect(response).to be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    item = response_body[:data]
+    expect(item[:id].to_i).to eq(item1.id)
+    expect(item[:attributes][:name]).to eq(item1.name)
+
+    get "/api/v1/items/find?name=shibby"
+    expect(response).to_not be_successful
+    response_body = JSON.parse(response.body, symbolize_names: true)
+    item = response_body[:data]
+    expect(item.nil?).to be(true)
   end
 end
